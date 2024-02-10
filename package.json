@@ -1,0 +1,47 @@
+{
+  "name": "ifs-router-svc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx webpack",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "devStart": "set NODE_ENV=development && nodemon index.js",
+    "start:prod": "export NODE_ENV=production && nodemon index.js",
+    "start:prod-windows": "set NODE_ENV=production && nodemon index.js",
+    "start:colo": "export NODE_ENV=colo && node index.js",
+    "start:colo-windows": "set NODE_ENV=colo && nodemon index.js",
+    "start:uat": "export NODE_ENV=uat && nodemon index.js",
+    "start:uat-windows": "set NODE_ENV=uat && nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "exceljs": "^4.3.0",
+    "express": "^4.18.1",
+    "express-http-proxy": "^1.6.3",
+    "http-proxy": "^1.18.1",
+    "json2csv": "^6.0.0-alpha.2",
+    "kafkajs": "^2.0.0",
+    "mongoclient": "^1.0.3",
+    "mongodb": "^5.7.0",
+    "mongoose": "^7.4.2",
+    "node-rest-client": "^3.1.1",
+    "nodemon": "^2.0.20",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.9",
+    "stream": "^0.0.2",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.21.8",
+    "@babel/preset-env": "^7.21.5",
+    "babel-loader": "^9.1.2",
+    "dotenv-webpack": "^8.0.1",
+    "webpack": "^5.83.1",
+    "webpack-cli": "^5.1.1",
+    "webpack-node-externals": "^3.0.0"
+  }
+}
