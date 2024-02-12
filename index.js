@@ -188,7 +188,7 @@ app.post("/app-center/:workspace/:app/:path/:pt/content", (req, res) => {
 
 });
 
-app.post('/public/generate', express.json(), async (req, res) => {
+app.post('/app/access/generate', express.json(), async (req, res) => {
   try {
 
     if( req.body.workspace) {
