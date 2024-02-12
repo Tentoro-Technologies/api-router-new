@@ -36,6 +36,7 @@ const { ConfigSource } = require('kafkajs');
 const { Console } = require('console');
 const { Timestamp } = require('mongodb');
 
+const jwtService = require("./service/jwt/JWTService");
 
 var config = checkNodeEnv();
 
@@ -186,6 +187,58 @@ app.post("/app-center/:workspace/:app/:path/:pt/content", (req, res) => {
     });
 
 });
+
+app.post('/public/generate', express.json(), async (req, res) => {
+  try {
+
+    if( req.body.workspace) {
+      var variableJSON =  req.body;
+      console.log(`variableJSON = ${JSON.stringify(variableJSON)}`);
+      const result = await jwtService.generateEncryptedToken(variableJSON);
+      // URL encode the `result` before appending it to the URL
+      const encodedApiKey = encodeURIComponent(result);
+      res.status(201).json({publicURL: `http://localhost:51600/public/applications?apikey=${encodedApiKey}`});
+    } else {
+      res.status(404).json({ message: "Workspace name not found" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Something went wrong. Contact Administration" });
+    console.log(err);
+  }
+});
+
+
+app.get('/public/applications', async (req, res) => {
+  try {
+    let { apikey } = req.query;
+    console.log(`Received apikey = ${apikey}`);
+
+    // Decode apikey if necessary (usually not required with Express)
+    // apikey = decodeURIComponent(apikey);
+
+    console.log(`Decoded apikey = ${apikey}`);
+    const decryptedVariable = jwtService.decryptAndValidateToken(apikey);
+
+    if (!decryptedVariable.valid) {
+      res.status(500).json({ message: decryptedVariable.error });
+    } else {
+      const result = await db.fetchPublicAppAndContext(decryptedVariable.decoded.details);
+      console.log("Result Fetched: " + JSON.stringify(result));
+      
+      if (result.length === 0) {
+        res.status(404).json({ message: "No Public Apps Found" });
+      } else {
+        // Send the response with the result data
+        res.status(200).json({ apps: result });
+      }
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Something went wrong. Contact Administration" });
+    console.log(err);
+  }
+});
+
+
 
 /******************************************************************************************
  *

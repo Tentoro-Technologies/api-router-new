@@ -347,3 +347,41 @@ module.exports.fetchHostAndPort = async function (workspace, app) {
         throw error;
     }
 };
+
+
+module.exports.fetchPublicAppAndContext = async function (filterValue) {
+  try {
+      console.log(`filterValue = ${JSON.stringify(filterValue)}`);
+      const pipeline = [
+        { $match :filterValue},
+        {
+          $group: {
+            _id: {
+              workspace: "$workspace",
+              appDisplayName: "$appdisplayname"
+            },
+            endpoints: {
+              $push: {endpoint :"$endpoint_label" , path :"$path"} // Collect all endpoint_labels for each unique workspace and appDisplayName
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            workspace: "$_id.workspace",
+            appDisplayName: "$_id.appDisplayName",
+            endpoints: 1
+          }
+        }
+      ];
+
+      const cursor = await serviceregister.aggregate(pipeline);
+
+      return cursor;
+
+
+  } catch (error) {
+      console.error('Error fetching host and port:', error);
+      throw error;
+  }
+};
