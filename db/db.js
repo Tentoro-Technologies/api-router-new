@@ -2,6 +2,7 @@
 
 
 const serviceregister = require("../models/serviceregister");
+const tokenModel = require("../models/TokenModel");
 const res = require('express/lib/response');
 
 
@@ -352,6 +353,7 @@ module.exports.fetchHostAndPort = async function (workspace, app) {
 module.exports.fetchPublicAppAndContext = async function (filterValue) {
   try {
       console.log(`filterValue = ${JSON.stringify(filterValue)}`);
+      filterValue['accessType'] = "Public";
       const pipeline = [
         { $match :filterValue},
         {
@@ -385,3 +387,18 @@ module.exports.fetchPublicAppAndContext = async function (filterValue) {
       throw error;
   }
 };
+
+module.exports.makePublicKeyEntry = async function(variableJSON ,generatedToken){
+
+  const cursor =  await tokenModel.findOneAndUpdate (
+    { workspace: variableJSON.workspace }, // Filter
+    {
+      workspace: variableJSON.workspace,
+      token: generatedToken,
+      data: variableJSON,
+      updatedAt: new Date()
+    }, // Update
+    { new: true, upsert: true } // Options
+  )
+
+}

@@ -188,16 +188,21 @@ app.post("/app-center/:workspace/:app/:path/:pt/content", (req, res) => {
 
 });
 
+
+
 app.post('/app/access/generate', express.json(), async (req, res) => {
   try {
-
-    if( req.body.workspace) {
-      var variableJSON =  req.body;
+    if (req.body.workspace) {
+      var variableJSON = req.body;
       console.log(`variableJSON = ${JSON.stringify(variableJSON)}`);
-      const result = await jwtService.generateEncryptedToken(variableJSON);
-      // URL encode the `result` before appending it to the URL
-      const encodedApiKey = encodeURIComponent(result);
-      res.status(201).json({publicURL: `http://localhost:51600/public/applications?apikey=${encodedApiKey}`});
+      const token = await jwtService.generateEncryptedToken(variableJSON);
+
+      // Use the module to upsert the token entry
+      await db.makePublicKeyEntry(variableJSON, token);
+
+      // URL encode the `token` before appending it to the URL
+      const encodedApiKey = encodeURIComponent(token);
+      res.status(201).json({ publicURL: `http://localhost:51600/public/applications?apikey=${encodedApiKey}` });
     } else {
       res.status(404).json({ message: "Workspace name not found" });
     }
