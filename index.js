@@ -1,4 +1,3 @@
-
 const request = require('request-promise-native')
 const express = require('express')
 const app = express()
@@ -202,7 +201,7 @@ app.post('/app/access/generate', express.json(), async (req, res) => {
 
       // URL encode the `token` before appending it to the URL
       const encodedApiKey = encodeURIComponent(token);
-      res.status(201).json({ publicURL: `http://localhost:51600/public/applications?apikey=${encodedApiKey}` });
+      res.status(201).json({ publicURL: `https://api.tentoro.in/router/public/applications?apikey=${encodedApiKey}` });
     } else {
       res.status(404).json({ message: "Workspace name not found" });
     }
