@@ -1,6 +1,5 @@
 
 
-
 const serviceregister = require("../models/serviceregister");
 const tokenModel = require("../models/TokenModel");
 const res = require('express/lib/response');
@@ -401,4 +400,35 @@ module.exports.makePublicKeyEntry = async function(variableJSON ,generatedToken)
     { new: true, upsert: true } // Options
   )
 
+}
+
+module.exports.fetchAndTransformData = async function(_worksapce) {
+  try {
+    // Fetch all documents from the 'token' collection
+    const tokens = await tokenModel.find({workspace : _worksapce});
+
+    // Transform each document into the desired format
+    const transformedData = tokens.map(doc => {
+      const transformedDoc = {
+        workspace: doc.workspace || doc.data.workspace, // Fallback to `data.workspace` if top-level `workspace` is missing
+        token: doc.token
+      };
+
+      // Conditionally add `app` and `path` if they exist
+      if (doc.data.app) {
+        transformedDoc.app = doc.data.app;
+      }
+
+      if (doc.data.path) {
+        transformedDoc.path = doc.data.path;
+      }
+
+      return transformedDoc;
+    });
+
+    console.log(transformedData);
+    return transformedData;
+  } catch (err) {
+    console.error('Error fetching or transforming data:', err);
+  }
 }
