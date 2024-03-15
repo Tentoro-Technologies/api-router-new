@@ -201,7 +201,24 @@ app.post('/app/access/generate', express.json(), async (req, res) => {
 
       // URL encode the `token` before appending it to the URL
       const encodedApiKey = encodeURIComponent(token);
-      res.status(201).json({ publicURL: `https://api.tentoro.in/router/public/applications?apikey=${encodedApiKey}` });
+      res.status(201).json({"apikey":encodedApiKey , publicURL: `https://api.tentoro.in/router/public/applications?apikey=${encodedApiKey}` });
+    } else {
+      res.status(404).json({ message: "Workspace name not found" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Something went wrong. Contact Administration" });
+    console.log(err);
+  }
+});
+
+app.get('/app/public/:workspace/apis/', express.json(), async (req, res) => {
+  try {
+    if (req.params.workspace) {
+      var workspace = req.params.workspace;
+      
+     var results = await db.fetchAndTransformData(workspace);
+
+      res.status(201).json(results);
     } else {
       res.status(404).json({ message: "Workspace name not found" });
     }
