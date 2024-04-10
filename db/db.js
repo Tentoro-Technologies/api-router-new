@@ -289,7 +289,7 @@ module.exports.addBulkMapping = async function (registry) {
                     endpoint_label: contextPathList[index].label,
                     client_support: client_support,
                     path: contextPathList[index].path,
-                    acccessType : accessType,
+                    accessType : accessType,
                     host: host,
                     port: port,
                     registration_date: new Date()
