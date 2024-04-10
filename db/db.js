@@ -256,7 +256,7 @@ module.exports.addBulkMapping = async function (registry) {
         let appdisplayname = registry.data.appDisplayName ? registry.data.appDisplayName : registry.data.app;
 
         var contextPathList = registry.data.paths;
-        var acccessType = registry.data.accessType ? registry.data.accessType : 'Public';
+        var accessType = registry.data.accessType ? registry.data.accessType : 'Public';
 
 	console.log("Paths");
 	console.log(contextPathList);
