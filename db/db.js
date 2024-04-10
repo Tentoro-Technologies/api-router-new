@@ -389,14 +389,20 @@ module.exports.fetchPublicAppAndContext = async function (filterValue) {
 
 module.exports.makePublicKeyEntry = async function(variableJSON ,generatedToken){
 
+  var payload =  {
+    workspace: variableJSON.workspace,
+    token: generatedToken,
+    data: variableJSON,
+    updatedAt: new Date()
+  };
+
+  if(variableJSON.miniapp){
+    payload["miniapp"] = variableJSON.miniapp;
+  }
+
   const cursor =  await tokenModel.findOneAndUpdate (
-    { workspace: variableJSON.workspace }, // Filter
-    {
-      workspace: variableJSON.workspace,
-      token: generatedToken,
-      data: variableJSON,
-      updatedAt: new Date()
-    }, // Update
+    variableJSON, // Filter
+   payload, // Update
     { new: true, upsert: true } // Options
   )
 
