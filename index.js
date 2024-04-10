@@ -1,4 +1,6 @@
-const request = require('request-promise-native')
+console.log(process.env.NODE_ENV)
+
+
 const express = require('express')
 const app = express()
 const mongoose =require("mongoose");

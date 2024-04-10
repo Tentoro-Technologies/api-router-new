@@ -1,7 +1,8 @@
 const configData = require("./config");
 
 function checkNodeEnv() {
-   var env = process.env.NODE_ENV || "development";
+   var env = process.env.NODE_ENV || "colo";
+   console.log("env = "+env);
   var config = null;
   if (env.trim() == "development") {
     console.log("Started with Local Config");

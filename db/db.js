@@ -256,6 +256,7 @@ module.exports.addBulkMapping = async function (registry) {
         let appdisplayname = registry.data.appDisplayName ? registry.data.appDisplayName : registry.data.app;
 
         var contextPathList = registry.data.paths;
+        var acccessType = registry.data.accessType ? registry.data.accessType : 'Public';
 
 	console.log("Paths");
 	console.log(contextPathList);
@@ -288,6 +289,7 @@ module.exports.addBulkMapping = async function (registry) {
                     endpoint_label: contextPathList[index].label,
                     client_support: client_support,
                     path: contextPathList[index].path,
+                    acccessType : accessType,
                     host: host,
                     port: port,
                     registration_date: new Date()
@@ -376,6 +378,8 @@ module.exports.fetchPublicAppAndContext = async function (filterValue) {
         }
       ];
 
+      console.log(JSON.stringify(pipeline));
+
       const cursor = await serviceregister.aggregate(pipeline);
 
       return cursor;
@@ -396,8 +400,8 @@ module.exports.makePublicKeyEntry = async function(variableJSON ,generatedToken)
     updatedAt: new Date()
   };
 
-  if(variableJSON.miniapp){
-    payload["miniapp"] = variableJSON.miniapp;
+  if(variableJSON.app){
+    payload["app"] = variableJSON.app;
   }
 
   const cursor =  await tokenModel.findOneAndUpdate (
@@ -405,6 +409,8 @@ module.exports.makePublicKeyEntry = async function(variableJSON ,generatedToken)
    payload, // Update
     { new: true, upsert: true } // Options
   )
+
+  return cursor;
 
 }
 

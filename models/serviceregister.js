@@ -38,6 +38,10 @@ const routerTableSchema = new mongoose.Schema({
   registration_date: {
     type: Date,
     default: null,
+  },
+  accessType: {
+    type: String,
+    default: "Private",
   }
 }, {
    versionKey: false

@@ -6,6 +6,10 @@ const TokenSchema = new mongoose.Schema({
     type: String,
 
   },
+  app:{
+    type: String,
+
+  },
   token: {
     type: String,
 
