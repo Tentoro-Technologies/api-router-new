@@ -189,21 +189,170 @@ app.post("/app-center/:workspace/:app/:path/:pt/content", (req, res) => {
 
 });
 
+async function printKeys(obj, document, meta, prefix = '') {
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      const value = obj[key];
+      const newPrefix = prefix ? `${prefix}.${key}` : key;
+
+      if (key === 'workspace') {
+        meta['workspace'] = obj['workspace'];
+
+        if (obj['action'] === 'generate') {
+          const token = encodeURIComponent(await jwtService.generateEncryptedToken({ "workspace": meta['workspace'] }));
+          obj['workspace_url'] = `http://external-url.com/${meta['workspace']}?token=${token}`;
+          obj['token'] = token;
+        } else if (obj['action'] === 'noaction') {
+          const _obj = fetchUrlsAndTokens(document, { workspace: meta['workspace'] });
+          obj['workspace_url'] = _obj['workspace_url'];
+          obj['token'] = _obj['token'];
+        } else if (obj['action'] === 'delete') {
+          obj['workspace_url'] = "";
+          obj['token'] = "";
+        }
+        delete obj['action'];
+      }
+
+      if (key === 'app') {
+        meta['app'] = obj['app'];
+
+        if(obj['action'] === 'generate') {
+          const token = encodeURIComponent(await jwtService.generateEncryptedToken({ "workspace": meta.workspace, "app": meta['app'] }));
+          obj['app_url'] = `http://app-url.com/${meta.workspace}/${meta['app']}?token=${token}`;
+          obj['token'] = token;
+        } else if(obj['action'] === 'noaction') {
+          const _obj = fetchUrlsAndTokens(document, { workspace: meta['workspace'], app: meta['app'] });
+          obj['app_url'] = _obj['app_url'];
+          obj['token'] = _obj['token'];
+        } else if(obj['action'] === 'delete') {
+          obj['app_url'] = "";
+          obj['token'] = "";
+        }
+        delete obj['action'];
+      }
+
+      if (key === 'path') {
+        if (obj['action'] === 'generate') {
+          const path = obj['path'];
+          const token = encodeURIComponent(await jwtService.generateEncryptedToken({ "workspace": meta.workspace, "app": meta.app, "path": path }));
+          obj['external_url'] = `http://path-url.com/${meta.workspace}/${meta.app}/${path}?token=${token}`;
+          obj['token'] = token;
+        } else if (obj['action'] === 'noaction') {
+          const _obj = fetchUrlsAndTokens(document, { workspace: meta['workspace'], app: meta['app'], path: obj['path'] });
+          obj['external_url'] = _obj['external_url'];
+          obj['token'] = _obj['token'];
+        } else if (obj['action'] === 'delete') {
+          obj['external_url'] = "";
+          obj['token'] = "";
+        }
+        delete obj['action'];
+      }
+
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        await printKeys(value, document, meta, newPrefix);
+      } else if (Array.isArray(value)) {
+        for (let index = 0; index < value.length; index++) {
+          if (typeof value[index] === 'object' && value[index] !== null) {
+            await printKeys(value[index], document, meta, `${newPrefix}[${index}]`);
+          }
+        }
+      }
+    }
+  }
+
+  return obj;
+}
+
+
+function fetchUrlsAndTokens(document , query) {
+  const results = {};
+
+  console.log("query document found : ",query);
+  if(query.workspace && query.app && query.path){
+    if (document && document.apps && Array.isArray(document.apps)) {
+      console.log("document apps fournd " , document.apps);
+      for(const app of document.apps){
+        if( app.app === query.app){
+          if(app.routes && Array.isArray(app.routes)){
+            console.log("Routes found ", app.routes);
+            for(const route of app.routes){
+              if(route.path === query.path){
+                 console.log("Route matched ",route.path);
+                 results["external_url"] = route["external_url"];
+                 results["token"] = route["token"];
+                 results["path"] = route["path"];
+                 break;
+              }
+            }
+          }
+          console.log("App found in the document. break this loop");
+          break;
+        }
+      }
+    }
+
+  }else if(query.workspace && query.app){
+    console.log("Apps are there ? ",(document && document.apps && Array.isArray(document.apps)));
+    if (document && document.apps && Array.isArray(document.apps)) {
+      for (const app of document.apps) {
+        console.log("****************APP***************************");
+
+        if (app.app === query.app) {
+          results["app_url"] = app["app_url"];
+          results["token"] = app["token"];
+          break; 
+        }
+      }
+    }
+
+  }else if(query.workspace && document){
+
+    results["workspace_url"] = document["workspace_url"];
+    results["token"] = document["token"]
+
+  }
+
+  return results;
+}
 
 
 app.post('/app/access/generate', express.json(), async (req, res) => {
   try {
     if (req.body.workspace) {
-      var variableJSON = req.body;
-      console.log(`variableJSON = ${JSON.stringify(variableJSON)}`);
-      const token = await jwtService.generateEncryptedToken(variableJSON);
+      var document = await db.fetchExternalApis(req.body.workspace);
+
+      var variableJSON = await printKeys(req.body ,document , {} ,'');
+      console.log("************************************Updated Doc************************************");
+      console.log(JSON.stringify(variableJSON,null,3));
+      console.log("***********************************************************************************");
 
       // Use the module to upsert the token entry
-      await db.makePublicKeyEntry(variableJSON, token);
+      var updatedDoc = await db.makePublicKeyEntryMultiple(variableJSON, "");
+      console.log("************************************Result************************************");
+      console.log(JSON.stringify(updatedDoc,null,3));
+      console.log("***********************************************************************************");
 
+      //Replace token logic to db.js
       // URL encode the `token` before appending it to the URL
-      const encodedApiKey = encodeURIComponent(token);
-      res.status(201).json({"apikey":encodedApiKey , publicURL: `https://api.tentoro.in/router/public/applications?apikey=${encodedApiKey}` });
+      const encodedApiKey = encodeURIComponent("");
+      res.status(201).json(updatedDoc);
+    } else {
+      res.status(404).json({ message: "Workspace name not found" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Something went wrong. Contact Administration" });
+    console.log(err);
+  }
+});
+
+app.post('/app/fetch/apiDetails', express.json(), async (req, res) => {
+  try {
+    if (req.body.workspace) {
+      var workspace = req.body.workspace;
+      console.log(`workspace found = ${workspace}`);
+      const apiDetails = await db.fetchApiDetails(workspace);
+
+      res.status(201).json(apiDetails);
     } else {
       res.status(404).json({ message: "Workspace name not found" });
     }

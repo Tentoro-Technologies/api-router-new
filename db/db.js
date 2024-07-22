@@ -2,6 +2,7 @@
 
 const serviceregister = require("../models/serviceregister");
 const tokenModel = require("../models/TokenModel");
+const serviceRegisterExternal = require("../models/ServiceRegisterExternal")
 const res = require('express/lib/response');
 
 
@@ -404,7 +405,7 @@ module.exports.makePublicKeyEntry = async function(variableJSON ,generatedToken)
     payload["app"] = variableJSON.app;
   }
 
-  const cursor =  await tokenModel.findOneAndUpdate (
+  const cursor =  await tokenModel.create (
     variableJSON, // Filter
    payload, // Update
     { new: true, upsert: true } // Options
@@ -413,6 +414,7 @@ module.exports.makePublicKeyEntry = async function(variableJSON ,generatedToken)
   return cursor;
 
 }
+
 
 module.exports.fetchAndTransformData = async function(_worksapce) {
   try {
@@ -444,3 +446,124 @@ module.exports.fetchAndTransformData = async function(_worksapce) {
     console.error('Error fetching or transforming data:', err);
   }
 }
+
+module.exports.fetchApiDetails = async function (_workspace) {
+  try {
+    const data = await serviceregister.aggregate([
+      {
+        $match: { workspace: _workspace }
+      },
+      {
+        $lookup: {
+          from: 'service_register_external',
+          let: { workspace: '$workspace', app: '$app', path: '$path', endpoint_label: '$endpoint_label' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$workspace', '$$workspace'] },
+                    { $eq: ['$app', '$$app'] },
+                    { $eq: ['$path', '$$path'] },
+                    { $eq: ['$endpoint_label', '$$endpoint_label'] }
+                  ]
+                }
+              }
+            }
+          ],
+          as: 'external_data'
+        }
+      },
+      {
+        $group: {
+          _id: { workspace: '$workspace', appdisplayname: '$appdisplayname' },
+          routes: {
+            $push: {
+              endpoint_label: '$endpoint_label',
+              external_url: {
+                $arrayElemAt: ['$external_data.external_url', 0]
+              }
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$_id.workspace',
+          apps: {
+            $push: {
+              appdisplayname: '$_id.appdisplayname',
+              routes: '$routes'
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          workspace: '$_id',
+          apps: 1
+        }
+      }
+    ]);
+
+    console.log(data);
+    return data;
+  } catch (err) {
+    console.error('Error fetching or transforming data:', err);
+  }
+};
+
+
+
+module.exports.makePublicKeyEntryMultiple = async function (variableJSON) {
+
+
+  // const cursor =  await serviceRegisterExternal.create (
+  //   variableJSON
+  // )
+  
+   
+  try {
+    const doc = await serviceRegisterExternal.findOneAndUpdate(
+      { workspace: variableJSON.workspace },
+      variableJSON,
+      { upsert: true, new: true } // 'new: true' returns the updated document
+    );
+ 
+    if (!doc) {
+      return res.status(500).send({ error: 'Document not found or not updated' });
+    }
+
+    // Fetch the updated document
+    const updatedDoc = await serviceRegisterExternal.findOne({ workspace: variableJSON.workspace }, { _id: 0, __v: 0 } );
+
+    return { message: "External Access updated successfully", updatedDoc };
+  } catch (err) {
+    console.log(err);
+    return { error: err.message };
+  }
+
+  } ;
+
+  module.exports.fetchExternalApis = async function (workspace) {
+
+
+    // const cursor =  await serviceRegisterExternal.create (
+    //   variableJSON
+    // )
+    
+     
+    try {
+
+      // Fetch the updated document
+      const fetched = await serviceRegisterExternal.findOne({ workspace: workspace }, { _id: 0, __v: 0 } );
+  
+      return fetched;
+    } catch (err) {
+      console.log(err);
+      return { error: err.message };
+    }
+  
+    } ;
+
