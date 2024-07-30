@@ -200,7 +200,7 @@ async function printKeys(obj, document, meta, prefix = '') {
 
         if (obj['action'] === 'generate') {
           const token = encodeURIComponent(await jwtService.generateEncryptedToken({ "workspace": meta['workspace'] }));
-          obj['workspace_url'] = `http://external-url.com/${meta['workspace']}?token=${token}`;
+          obj['workspace_url'] = `https://api.tentoro.in/public/${meta['workspace']}?token=${token}`;
           obj['token'] = token;
         } else if (obj['action'] === 'noaction') {
           const _obj = fetchUrlsAndTokens(document, { workspace: meta['workspace'] });
@@ -218,7 +218,7 @@ async function printKeys(obj, document, meta, prefix = '') {
 
         if(obj['action'] === 'generate') {
           const token = encodeURIComponent(await jwtService.generateEncryptedToken({ "workspace": meta.workspace, "app": meta['app'] }));
-          obj['app_url'] = `http://app-url.com/${meta.workspace}/${meta['app']}?token=${token}`;
+          obj['app_url'] = `https://api.tentoro.in/public/${meta.workspace}/${meta['app']}?token=${token}`;
           obj['token'] = token;
         } else if(obj['action'] === 'noaction') {
           const _obj = fetchUrlsAndTokens(document, { workspace: meta['workspace'], app: meta['app'] });
@@ -235,7 +235,7 @@ async function printKeys(obj, document, meta, prefix = '') {
         if (obj['action'] === 'generate') {
           const path = obj['path'];
           const token = encodeURIComponent(await jwtService.generateEncryptedToken({ "workspace": meta.workspace, "app": meta.app, "path": path }));
-          obj['external_url'] = `http://path-url.com/${meta.workspace}/${meta.app}/${path}?token=${token}`;
+          obj['external_url'] = `https://api.tentoro.in/public/${meta.workspace}/${meta.app}/${path}?token=${token}`;
           obj['token'] = token;
         } else if (obj['action'] === 'noaction') {
           const _obj = fetchUrlsAndTokens(document, { workspace: meta['workspace'], app: meta['app'], path: obj['path'] });
