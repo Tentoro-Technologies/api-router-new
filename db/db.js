@@ -479,9 +479,11 @@ module.exports.fetchApiDetails = async function (_workspace) {
           _id: { workspace: '$workspace', appdisplayname: '$appdisplayname' },
           routes: {
             $push: {
-              endpoint_label: '$endpoint_label',
-              external_url: {
-                $arrayElemAt: ['$external_data.external_url', 0]
+             // endpoint_label: '$endpoint_label',
+             external_url : '$external_data.external_url',
+
+              token : {
+                $arrayElemAt: ['$external_data.token', 0]
               }
             }
           }

@@ -315,6 +315,23 @@ function fetchUrlsAndTokens(document , query) {
   return results;
 }
 
+app.get('/app/access/apis' , express.json(), async (req,res)=>{
+
+   try{
+    if (req.body.workspace) {
+      var document = await db.fetchExternalApis(req.body.workspace);
+      res.status(200).json(document);
+    }else{
+      res.status(500).json({message : `No records found for ${req.body.workspace}`});
+    }
+
+   }
+    catch(err) {
+      res.status(500).json({ message: "Something went wrong. Contact Administration" });
+      console.log(err);
+    }
+
+});
 
 app.post('/app/access/generate', express.json(), async (req, res) => {
   try {
