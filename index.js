@@ -319,7 +319,8 @@ app.get('/app/access/apis' , express.json(), async (req,res)=>{
 
    try{
     if (req.body.workspace) {
-      var document = await db.fetchExternalApis(req.body.workspace);
+      //var document = db.getMergedRouteseRoutes(req.body.workspace);
+      var document = await db.getMergedRoutes(req.body.workspace);
       res.status(200).json(document);
     }else{
       res.status(500).json({message : `No records found for ${req.body.workspace}`});
@@ -739,6 +740,7 @@ app.post("/:processid",async function (req, res){
       }
 
   });
+
 
 
 

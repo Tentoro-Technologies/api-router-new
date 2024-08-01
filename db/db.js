@@ -1,10 +1,9 @@
-
-
 const serviceregister = require("../models/serviceregister");
+const serviceRegisterExternal = require("../models/serviceRegisterExternal");
 const tokenModel = require("../models/TokenModel");
-const serviceRegisterExternal = require("../models/ServiceRegisterExternal")
 const res = require('express/lib/response');
-
+const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
 function sleep(ms) {
   return new Promise((resolve) => {
@@ -569,3 +568,75 @@ module.exports.makePublicKeyEntryMultiple = async function (variableJSON) {
   
     } ;
 
+    module.exports.getMergedRoutes = async function(pWorkspace)  {
+      var result = {};
+      try {
+        // Connect to MongoDB
+        mongoose.connect('mongodb://devadmin:hau2Opeef7Hoos8eeNgo@151.106.38.94:32030/k1?authSource=admin', { useNewUrlParser: true, useUnifiedTopology: true });
+    
+        // Define your models
+        const ServiceRegister = mongoose.model('ServiceRegister', new Schema({}), 'service_register');
+        const ServiceRegisterExternal = mongoose.model('ServiceRegisterExternal', new Schema({}), 'service_register_external');
+        // Fetch all documents from service_register
+        
+        const serviceRegisters = JSON.parse(JSON.stringify( await ServiceRegister.find({workspace: pWorkspace})));
+       
+        // Fetch the first document from service_register_external (assuming single workspace)
+        
+        const serviceRegisterExternal =JSON.parse(JSON.stringify( await ServiceRegisterExternal.findOne({workspace: pWorkspace})));
+    
+        console.log(JSON.parse(JSON.stringify(serviceRegisterExternal))["apps"]);
+        const externalApps = serviceRegisterExternal.apps.map(app => app.app);
+        const externalRoutes = {};
+        serviceRegisterExternal.apps.forEach(app => {
+          externalRoutes[app.app] = app.routes.map(route => route.path);
+        });
+    
+        // Prepare the output
+        const output = {
+          workspace: serviceRegisterExternal.workspace,
+          workspace_url: serviceRegisterExternal.workspace_url,
+          token: serviceRegisterExternal.token,
+          apps: [...serviceRegisterExternal.apps]
+        };
+    
+        // Find missing apps and routes
+        serviceRegisters.forEach(serviceRegister => {
+          const { app, path } = serviceRegister;
+    
+          // Check if the app is already in service_register_external
+          if (!externalApps.includes(app)) {
+            // Add missing app
+            output.apps.push({
+              app,
+              app_url: '', // Set default or generate if needed
+              token: '',   // Set default or generate if needed
+              routes: [{
+                path,
+                external_url: '', // Set default or generate if needed
+                token: ''         // Set default or generate if needed
+              }]
+            });
+          } else {
+            // Check for missing routes in existing apps
+            const existingApp = output.apps.find(a => a.app === app);
+            if (!externalRoutes[app].includes(path)) {
+              existingApp.routes.push({
+                path,
+                external_url: '', // Set default or generate if needed
+                token: ''         // Set default or generate if needed
+              });
+            }
+          }
+        });
+    
+        console.log(JSON.stringify(output, null, 2));
+        result = output;
+      } catch (error) {
+        console.error('Error fetching or processing data:', error);
+      } finally {
+        mongoose.connection.close();
+      }
+      return result ;
+    }
+    
