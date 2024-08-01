@@ -1,9 +1,10 @@
+
+
 const serviceregister = require("../models/serviceregister");
-const serviceRegisterExternal = require("../models/ServiceRegisterExternal");
 const tokenModel = require("../models/TokenModel");
+const serviceRegisterExternal = require("../models/ServiceRegisterExternal")
 const res = require('express/lib/response');
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+
 
 function sleep(ms) {
   return new Promise((resolve) => {
@@ -478,11 +479,9 @@ module.exports.fetchApiDetails = async function (_workspace) {
           _id: { workspace: '$workspace', appdisplayname: '$appdisplayname' },
           routes: {
             $push: {
-             // endpoint_label: '$endpoint_label',
-             external_url : '$external_data.external_url',
-
-              token : {
-                $arrayElemAt: ['$external_data.token', 0]
+              endpoint_label: '$endpoint_label',
+              external_url: {
+                $arrayElemAt: ['$external_data.external_url', 0]
               }
             }
           }
@@ -568,75 +567,71 @@ module.exports.makePublicKeyEntryMultiple = async function (variableJSON) {
   
     } ;
 
-    module.exports.getMergedRoutes = async function(pWorkspace)  {
-      var result = {};
-      try {
-        // Connect to MongoDB
-        mongoose.connect('mongodb://devadmin:hau2Opeef7Hoos8eeNgo@151.106.38.94:32030/k1?authSource=admin', { useNewUrlParser: true, useUnifiedTopology: true });
-    
-        // Define your models
-        const ServiceRegister = mongoose.model('ServiceRegister', new Schema({}), 'service_register');
-        const ServiceRegisterExternal = mongoose.model('ServiceRegisterExternal', new Schema({}), 'service_register_external');
-        // Fetch all documents from service_register
-        
-        const serviceRegisters = JSON.parse(JSON.stringify( await ServiceRegister.find({workspace: pWorkspace})));
-       
-        // Fetch the first document from service_register_external (assuming single workspace)
-        
-        const serviceRegisterExternal =JSON.parse(JSON.stringify( await ServiceRegisterExternal.findOne({workspace: pWorkspace})));
-    
-        console.log(JSON.parse(JSON.stringify(serviceRegisterExternal))["apps"]);
-        const externalApps = serviceRegisterExternal.apps.map(app => app.app);
-        const externalRoutes = {};
-        serviceRegisterExternal.apps.forEach(app => {
-          externalRoutes[app.app] = app.routes.map(route => route.path);
-        });
-    
-        // Prepare the output
-        const output = {
-          workspace: serviceRegisterExternal.workspace,
-          workspace_url: serviceRegisterExternal.workspace_url,
-          token: serviceRegisterExternal.token,
-          apps: [...serviceRegisterExternal.apps]
-        };
-    
-        // Find missing apps and routes
-        serviceRegisters.forEach(serviceRegister => {
-          const { app, path } = serviceRegister;
-    
-          // Check if the app is already in service_register_external
-          if (!externalApps.includes(app)) {
-            // Add missing app
-            output.apps.push({
-              app,
-              app_url: '', // Set default or generate if needed
-              token: '',   // Set default or generate if needed
-              routes: [{
-                path,
-                external_url: '', // Set default or generate if needed
-                token: ''         // Set default or generate if needed
-              }]
-            });
-          } else {
-            // Check for missing routes in existing apps
-            const existingApp = output.apps.find(a => a.app === app);
-            if (!externalRoutes[app].includes(path)) {
-              existingApp.routes.push({
-                path,
-                external_url: '', // Set default or generate if needed
-                token: ''         // Set default or generate if needed
-              });
-            }
-          }
-        });
-    
-        console.log(JSON.stringify(output, null, 2));
-        result = output;
-      } catch (error) {
-        console.error('Error fetching or processing data:', error);
-      } finally {
-        mongoose.connection.close();
-      }
-      return result ;
+module.exports.fetchMergedRoutes = async function (workspace){
+  var result = {} ;
+  try {
+    // Fetch all documents from service_register
+    const serviceRegisters = await serviceregister.find({});
+    console.log('Service Registers:', serviceRegisters);
+
+    // Fetch the first document from service_register_external (assuming single workspace)
+    const serviceRegisterExternalDoc = await serviceRegisterExternal.findOne({});
+    console.log('Service Register External:', serviceRegisterExternalDoc);
+
+    if (!serviceRegisterExternalDoc) {
+      throw new Error('No document found in service_register_external');
     }
-    
+
+    const externalApps = serviceRegisterExternalDoc.apps.map((app) => app.app);
+    const externalRoutes = {};
+    serviceRegisterExternalDoc.apps.forEach((app) => {
+      externalRoutes[app.app] = app.routes.map((route) => route.path);
+    });
+
+    // Prepare the output
+    const output = {
+      workspace: serviceRegisterExternalDoc.workspace,
+      workspace_url: serviceRegisterExternalDoc.workspace_url,
+      token: serviceRegisterExternalDoc.token,
+      apps: [...serviceRegisterExternalDoc.apps],
+    };
+
+    // Find missing apps and routes
+    serviceRegisters.forEach((serviceRegister) => {
+      const { app, path } = serviceRegister;
+
+      // Check if the app is already in service_register_external
+      if (!externalApps.includes(app)) {
+        // Add missing app
+        output.apps.push({
+          app,
+          app_url: '', // Set default or generate if needed
+          token: '', // Set default or generate if needed
+          routes: [
+            {
+              path,
+              external_url: '', // Set default or generate if needed
+              token: '', // Set default or generate if needed
+            },
+          ],
+        });
+      } else {
+        // Check for missing routes in existing apps
+        const existingApp = output.apps.find((a) => a.app === app);
+        if (!externalRoutes[app].includes(path)) {
+          existingApp.routes.push({
+            path,
+            external_url: '', // Set default or generate if needed
+            token: '', // Set default or generate if needed
+          });
+        }
+      }
+    });
+
+    console.log(JSON.stringify(output, null, 2));
+    result = output;
+  } catch (error) {
+    console.error('Error fetching or processing data:', error);
+  } 
+  return result;
+}
