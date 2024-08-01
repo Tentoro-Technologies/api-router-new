@@ -1,5 +1,5 @@
 const serviceregister = require("../models/serviceregister");
-const serviceRegisterExternal = require("../models/serviceRegisterExternal");
+const serviceRegisterExternal = require("../models/ServiceRegisterExternal");
 const tokenModel = require("../models/TokenModel");
 const res = require('express/lib/response');
 const mongoose = require('mongoose');
