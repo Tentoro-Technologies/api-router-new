@@ -318,10 +318,14 @@ function fetchUrlsAndTokens(document , query) {
 app.get('/app/access/apis' , express.json(), async (req,res)=>{
 
    try{
-    if (req.body.workspace) {
-      //var document = db.getMergedRouteseRoutes(req.body.workspace);
-      var document = await db.fetchMergedRoutes(req.body.workspace);
-      res.status(200).json(document);
+
+        // Fetching workspace from request headers
+        const workspace = req.headers['workspace'];
+
+  if (workspace) {
+          const document = await db.fetchMergedRoutes(workspace);
+          res.status(200).json(document);
+
     }else{
       res.status(500).json({message : `No records found for ${req.body.workspace}`});
     }
