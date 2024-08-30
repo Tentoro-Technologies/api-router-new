@@ -643,9 +643,10 @@ var updateRegistery = function (message) {
 var triggerApi = async function (message) {
   try {
 
-    db.fetchHostAndPort(message.workspace ,message.app).then((serviceData)=>{
+    db.fetchHostAndPort(message.workspace ,message.app).then((data)=>{
 
-      if (serviceData) {
+      if (data) {
+        serviceData = data[0];
         console.log("Service Data Found: ", JSON.stringify(serviceData));
 
         // Construct the URL for the API call
