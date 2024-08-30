@@ -34,7 +34,6 @@ var defaultMessage = {
 const produce = async (topic, message) => {
     console.log("topic : "+topic + " message : "+JSON.stringify(message));
     await producer.connect();
-    message = {};
     console.log("Ready to send message to the topic");
     try {
         // send a message to the specified topic with
