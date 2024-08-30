@@ -53,7 +53,7 @@ function delay(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
-
+module.exports = consume
 /** 
 module.exports = consume;
 
