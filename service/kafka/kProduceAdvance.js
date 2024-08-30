@@ -33,7 +33,8 @@ var defaultMessage = {
 // we define an async function that writes a new message to a specified topic
 const produce = async (topic, message) => {
     await producer.connect();
-    message = {}
+    message = {};
+    console.log("Ready to send message to the topic");
     try {
         // send a message to the specified topic with
         // a unique key and the message content
