@@ -542,8 +542,7 @@ app.post("/api/produce/:workspace/:app/:path", async (req, res) => {
     const message =  {
       workspace: req.params.workspace,
       app: req.params.app,
-      path:req.params.path,
-      data: JSON.stringify(_body), // Convert message to string before sending
+      path:req.params.path // Convert message to string before sending
     };
 
     produce("iot-topic",message).catch((err) => {
