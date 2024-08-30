@@ -22,6 +22,8 @@ const cors = require('cors');
 const consume = require("./service/kafka/kConsumer")
 const produce = require("./service/kafka/kProducer");
 
+const consumeAdvance = require("./service/kafka/kConsumerAdvance")
+
 const httpProxy = require('express-http-proxy')
 const { json } = require('express/lib/response')
 
@@ -482,7 +484,7 @@ app.all(`${_url_path}/*`, async (req, res) => {
                             type: "ActionInstanceEvent"
                         };
                         console.log(JSON.stringify(event));
-                        produce(event).catch((err) => {
+                        produce("ifa-logs",event).catch((err) => {
                             console.log("*******************>>>>>><<<<<<<*******************");
                             console.log(err);
                             console.log("*******************>>>>>><<<<<<<*******************");
@@ -529,6 +531,31 @@ app.get('/api/getHostAndPort', async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "Something went wrong. Contact Administration" });
     console.log(err);
+  }
+});
+
+// POST route to push the body to Kafka topic
+app.post("/api/produce/:workspace/:app/:path", async (req, res) => {
+  try {
+    const message =  {
+      workspace: req.params.workspace,
+      app: req.params.app,
+      path:req.params.path,
+      data: JSON.stringify(message), // Convert message to string before sending
+    };
+
+    produce("iot-topic",message).catch((err) => {
+      console.log("*******************>>>>>><<<<<<<*******************");
+      console.log(err);
+      console.log("*******************>>>>>><<<<<<<*******************");
+  });
+
+
+    console.log("Message sent to Kafka:", message);
+    res.status(200).send("Message successfully pushed to Kafka");
+  } catch (error) {
+    console.error("Error pushing message to Kafka:", error);
+    res.status(500).send("Failed to push message to Kafka");
   }
 });
 
@@ -609,14 +636,53 @@ var updateRegistery = function (message) {
         console.log(e);
     }
 
-
-
 }
 
-// start the consumer, and log any errors
-consume(updateRegistery).catch((err) => {
-    console.error("error in consumer: ", err)
+var triggerApi = async function (message) {
+  try {
+
+    db.fetchHostAndPort(message.workspace ,message.app).then((serviceData)=>{
+
+      if (serviceData) {
+        console.log("Service Data Found: ", JSON.stringify(serviceData));
+
+        // Construct the URL for the API call
+        let apiUrl = `${serviceData.host}:${serviceData.port}/${message.path}`; // Replace /your_api_endpoint with the correct endpoint
+
+        // Make the API call using axios
+            // Make the POST API call using axios
+            rest.post(apiUrl, null , message.data)  // message.data is sent as the body of the POST request
+                .then((response) => {
+                    console.log("API call successful. Data received: ", response.data);
+
+                })
+                .catch((error) => {
+                    console.error("Error during API call: ", error);
+                });
+
+    } else {
+        console.log("No service data found for the given criteria.");
+    }
+
+    }).catch((err)=>{
+      console.log("Error occured while processing the request");
+      console.log(err);
+    });
+
+  } catch (error) {
+      console.error("Error in triggerApi: ", error);
+  }
+};
+
+
+consumeAdvance(updateRegistery,triggerApi).catch((err) => {
+  console.error("error in consumer: ", err)
 });
+
+// start the consumer, and log any errors
+/**consume(updateRegistery).catch((err) => {
+    console.error("error in consumer: ", err)
+});*/
 
 
 
