@@ -23,6 +23,7 @@ const consume = require("./service/kafka/kConsumer")
 const produce = require("./service/kafka/kProducer");
 
 const consumeAdvance = require("./service/kafka/kConsumerAdvance")
+const produceAdvance = require("./service/kafka/kProduceAdvance")
 
 const httpProxy = require('express-http-proxy')
 const { json } = require('express/lib/response')
@@ -545,7 +546,7 @@ app.post("/api/produce/:workspace/:app/:path", async (req, res) => {
       path:req.params.path // Convert message to string before sending
     };
 
-    produce("iot-topic",message).catch((err) => {
+    produceAdvance("iot-topic",message).catch((err) => {
       console.log("*******************>>>>>><<<<<<<*******************");
       console.log(err);
       console.log("*******************>>>>>><<<<<<<*******************");
