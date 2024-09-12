@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: control-plane
+spec:
+  type: ExternalName
+  externalName: 151.106.38.94
+  ports:
+    - protocol: TCP
+      port: 9092
+      targetPort: 9092
+

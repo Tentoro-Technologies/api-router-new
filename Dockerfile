@@ -8,3 +8,4 @@ EXPOSE 31600
 ENV NODE_ENV=$PROFILE
 RUN echo "$NODE_ENV"
 CMD ["node" , "index.js"]
+
