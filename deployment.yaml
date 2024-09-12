@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-router
+  namespace: control-plane
+  labels:
+    app: api-router
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-router
+  template:
+    metadata:
+      labels:
+        app: api-router
+    spec:
+      containers:
+      - name: api-router
+        image: hubadmin/tentoro:api-router
+        imagePullPolicy: Always
+        env:
+        - name: NODE_ENV
+          value: "colo"
+        ports:
+        - containerPort: 51600
+      imagePullSecrets:
+      - name: docker-cred  # Reference the newly created secret
+
