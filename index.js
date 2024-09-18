@@ -643,7 +643,7 @@ var updateRegistery = function (message) {
 
 var triggerApi = async function (message) {
   try {
-
+    console.log("Trigger API trigger from iot-topics : "+message);
     db.fetchHostAndPort(message.workspace ,message.app).then((data)=>{
 
       if (data) {
