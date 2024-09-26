@@ -31,25 +31,26 @@ pipeline {
 
     stage('Update Deployment File') {
       environment {
-        GIT_REPO_NAME = "api-router-new"
+        GIT_REPO_URL = "https://github.com/Tentoro-Technologies/api-router-new.git" // Correct repository URL
         GIT_USER_NAME = "AreebAbdulGhani"
+        GIT_EMAIL = "areebghani359@gmail.com"
       }
       steps {
         withCredentials([string(credentialsId: 'github-cred', variable: 'GITHUB_TOKEN')]) {
-            sh '''
-                git config user.email "areebghani359@gmail.com"
-                git config user.name "Areeb Abdul Ghani"
-                BUILD_NUMBER=${BUILD_NUMBER}
-                sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" deployment.yaml
-                git add deployment.yaml
-                git commit -m "Update deployment image to version ${BUILD_NUMBER}"
-                git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:cloud
-            '''
+            script {
+                sh '''
+                    git config user.email "${GIT_EMAIL}"
+                    git config user.name "${GIT_USER_NAME}"
+                    BUILD_NUMBER=${BUILD_NUMBER}
+                    sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" deployment.yaml
+                    git add deployment.yaml
+                    git commit -m "Update deployment image to version ${BUILD_NUMBER}"
+                    git push https://${GITHUB_TOKEN}@github.com/Tentoro-Technologies/api-router-new.git HEAD:cloud
+                '''
+            }
         }
       }
     }
   }
 }
-
-
 
