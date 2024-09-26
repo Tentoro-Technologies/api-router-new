@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: api-router
-        image: hubadmin/tentoro:api-router
+        image: hubadmin/tentoro:api-router:replaceImageTag
         imagePullPolicy: Always
         env:
         - name: NODE_ENV
