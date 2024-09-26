@@ -15,7 +15,7 @@ pipeline {
 
     stage('Build and Push Docker Image') {
       environment {
-        DOCKER_IMAGE = "hubadmin/tentoro:api-router:${BUILD_NUMBER}"
+        DOCKER_IMAGE = "hubadmin/tentoro:api-router-${BUILD_NUMBER}"
         REGISTRY_CREDENTIALS = credentials('docker-cred')
       }
       steps {
