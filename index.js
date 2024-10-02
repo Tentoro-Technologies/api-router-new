@@ -454,7 +454,7 @@ app.all(`${_url_path}/*`, async (req, res) => {
 
     console.log("Workspace", workspace);
     console.log(req.body);
-    console.log(req.headers.user);
+    console.log(req.headers);
 
     //lookup for the path in the service_register
     db.fetchHostAndPort(workspace, app).then(async (result) => {
