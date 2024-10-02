@@ -33,7 +33,7 @@ var message = {
 };
 
 // we define an async function that writes a new message each second
-const produce = async (message) => {
+const produce = async (topic, message) => {
     await producer.connect()
 
     try {
