@@ -485,7 +485,7 @@ app.all(`${_url_path}/*`, async (req, res) => {
                             employeeid:req?.headers?.userid,
                             type: "ActionInstanceEvent"
                         };
-                        console.log(JSON.stringify(event));
+                        console.log("Data to Kafka",JSON.stringify(event));
                         produce("ifa-logs",event).catch((err) => {
                             console.log("*******************>>>>>><<<<<<<*******************");
                             console.log(err);
