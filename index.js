@@ -539,7 +539,7 @@ app.get('/api/getHostAndPort', async (req, res) => {
 });
 
 // POST route to push the body to Kafka topic
-app.post("/api/produce/:workspace/:app/:path", async (req, res) => {
+app.post("/api/produce/:workspace/:app/:path",express.json(), async (req, res) => {
   
   try {
     const _body = req.body;
@@ -547,7 +547,7 @@ app.post("/api/produce/:workspace/:app/:path", async (req, res) => {
       workspace: req.params.workspace,
       app: req.params.app,
       path:req.params.path,
-      data : _body // Convert message to string before sending
+      data : JSON.stringify(_body) // Convert message to string before sending
     };
 
     produceAdvance("iot-topic",message).catch((err) => {
