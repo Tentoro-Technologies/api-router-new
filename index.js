@@ -482,7 +482,9 @@ app.all(`${_url_path}/*`, async (req, res) => {
                             app: req.params.app,
                             appDisplayName: result[0].appdisplayname ? result[0].appdisplayname : req.params.app,
                             initiatedBy: req.query.user,
-                            employeeid:req?.headers?.userid,
+                            employeeid:req?.headers?.employeeid,
+                            userName:req?.headers?.username,
+                            userId:req?.headers?.userid,
                             type: "ActionInstanceEvent"
                         };
                         console.log("Data to Kafka",JSON.stringify(event));
