@@ -652,7 +652,7 @@ var triggerApi = async function (message) {
       if (data) {
         serviceData = data[0];
         console.log("Service Data Found: ", JSON.stringify(serviceData));
-
+        console.log("Data for the body : " , message.data);
         // Construct the URL for the API call
         let apiUrl = `${serviceData.host}:${serviceData.port}/${message.path}`; // Replace /your_api_endpoint with the correct endpoint
 
@@ -660,7 +660,7 @@ var triggerApi = async function (message) {
             // Make the POST API call using axios
             rest.post(apiUrl, null , message.data)  // message.data is sent as the body of the POST request
                 .then((response) => {
-                    console.log("API call successful. Data received: ", response.data);
+                    console.log("API call successful. Data received: ", response);
 
                 })
                 .catch((error) => {
